@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.database import get_db
 from app.core.response import ok
 from app.schemas.auth import LoginRequest, RegisterRequest, ResetPasswordRequest, SendCodeRequest
@@ -16,10 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/send-code")
 async def send_code(data: SendCodeRequest, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    code = await account.send_code(db, data.email, data.purpose)
-    if settings.debug and not settings.smtp_host:
-        # 开发环境（SMTP 未配置）验证码无法送达邮箱，直接返回便于联调
-        return ok({"dev_code": code})
+    await account.send_code(db, data.email, data.purpose)
     return ok()
 
 

@@ -21,8 +21,12 @@ async def send_mail(to: str, subject: str, body: str) -> None:
             logger.info("开发模式（SMTP 未配置）不发送邮件。收件人=%s 主题=%s 内容=%s", to, subject, body)
         return
 
+    sender = settings.smtp_from or settings.smtp_user
+    if not sender:
+        raise RuntimeError("SMTP_FROM 或 SMTP_USER 至少需配置一项，否则无法确定邮件发件人")
+
     message = EmailMessage()
-    message["From"] = settings.smtp_from or settings.smtp_user
+    message["From"] = sender
     message["To"] = to
     message["Subject"] = subject
     message.set_content(body)
@@ -33,7 +37,7 @@ async def send_mail(to: str, subject: str, body: str) -> None:
         port=settings.smtp_port,
         username=settings.smtp_user or None,
         password=settings.smtp_password or None,
-        start_tls=True,
+        start_tls=settings.smtp_start_tls,
     )
 
 

@@ -122,7 +122,20 @@ playwright install chromium
 
 ### 注册与邮箱验证码（开发环境）
 
-开发环境默认未配置 SMTP。`DEBUG=true` 时，`POST /api/v1/auth/send-code` 会在响应 `data.dev_code` 中直接返回验证码，填入注册表单即可完成注册；生产环境请配置 `SMTP_*` 环境变量，验证码将通过邮件发送。
+验证码通过邮件发送，**接口响应中不包含验证码**。开发环境可使用内置的 MailPit 本地邮件服务器收信：
+
+1. 启动依赖中间件（含 MailPit）：`docker compose -f deploy/docker-compose.yml up -d`
+2. 在后端 `.env` 中配置：
+
+   ```env
+   SMTP_HOST=localhost
+   SMTP_PORT=1025
+   SMTP_START_TLS=false
+   ```
+
+3. 点击「发送验证码」后，打开 MailPit Web UI（http://localhost:8025）查看邮件并复制验证码
+
+生产环境请配置真实的 `SMTP_*` 环境变量，验证码将通过真实邮件服务发送。
 
 ### 默认管理员账号
 

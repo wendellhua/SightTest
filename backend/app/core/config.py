@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     # SMTP
     smtp_host: str = ""
     smtp_port: int = 587
+    smtp_start_tls: bool = True
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
