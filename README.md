@@ -120,22 +120,27 @@ playwright install chromium
 
 访问前端进入系统，流程：**注册登录 → 创建项目 → 绑定模型 → 方案建设 → 用例管理 → 测试执行 → 报告 → 用量与成本**。
 
-### 注册与邮箱验证码（开发环境）
+### 注册与邮箱验证码
 
-验证码通过邮件发送，**接口响应中不包含验证码**。开发环境可使用内置的 MailPit 本地邮件服务器收信：
+验证码只通过邮件发送，**接口响应中不包含验证码**。必须在后端 `.env` 中配置 SMTP，否则「发送验证码」会返回 `503 邮件服务未配置`。
+
+**方式一：真实邮箱服务**（验证码投递到用户真实邮箱），以 QQ 邮箱为例：
+
+```env
+SMTP_HOST=smtp.qq.com
+SMTP_PORT=465            # 465 自动使用隐式 TLS；587 使用 STARTTLS
+SMTP_USER=xxx@qq.com
+SMTP_PASSWORD=<SMTP 授权码，非登录密码>
+SMTP_FROM=xxx@qq.com     # 需与 SMTP_USER 一致
+```
+
+**方式二：本地 MailPit**（仅开发调试；邮件被本地拦截，**不会投递到真实邮箱**）：
 
 1. 启动依赖中间件（含 MailPit）：`docker compose -f deploy/docker-compose.yml up -d`
-2. 在后端 `.env` 中配置：
+2. 后端 `.env` 配置 `SMTP_HOST=localhost`、`SMTP_PORT=1025`、`SMTP_START_TLS=false`、`SMTP_FROM=noreply@sighttest.dev`
+3. 点击「发送验证码」后，在 MailPit Web UI（http://localhost:8025）查看邮件
 
-   ```env
-   SMTP_HOST=localhost
-   SMTP_PORT=1025
-   SMTP_START_TLS=false
-   ```
-
-3. 点击「发送验证码」后，打开 MailPit Web UI（http://localhost:8025）查看邮件并复制验证码
-
-生产环境请配置真实的 `SMTP_*` 环境变量，验证码将通过真实邮件服务发送。
+安全策略：同邮箱 60 秒内限发一次；验证码 10 分钟有效、单次使用；错误 5 次即作废需重新获取。
 
 ### 默认管理员账号
 

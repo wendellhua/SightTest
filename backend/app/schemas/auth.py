@@ -1,30 +1,33 @@
 """认证与账号相关的请求/响应模型。"""
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+
+# 邮箱统一去空格并转小写，避免大小写不同被视为两个账号
+NormalizedEmail = Annotated[EmailStr, AfterValidator(lambda v: v.strip().lower())]
 
 
 class SendCodeRequest(BaseModel):
-    email: EmailStr
+    email: NormalizedEmail
     purpose: Literal["register", "reset_password"]
 
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: NormalizedEmail
     code: str = Field(min_length=6, max_length=16)
     password: str = Field(min_length=8, max_length=64)
     name: str = Field(min_length=1, max_length=100)
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: NormalizedEmail
     password: str = Field(min_length=1, max_length=64)
 
 
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: NormalizedEmail
     code: str = Field(min_length=6, max_length=16)
     new_password: str = Field(min_length=8, max_length=64)
 

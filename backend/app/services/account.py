@@ -3,10 +3,12 @@
 业务规则（归属、状态、配额）在此层校验，路由层不承载业务逻辑。
 """
 
+import logging
 import secrets
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException, ErrorCode
@@ -18,10 +20,13 @@ from app.schemas.auth import (
     TokenResponse,
     UserOut,
 )
-from app.utils.mail import send_verification_code
+from app.utils.mail import MailNotConfiguredError, MailSendError, send_verification_code
+
+logger = logging.getLogger(__name__)
 
 CODE_TTL = timedelta(minutes=10)
 RESEND_INTERVAL = timedelta(seconds=60)
+MAX_CODE_ATTEMPTS = 5
 
 
 def _generate_code() -> str:
@@ -33,7 +38,16 @@ def _now() -> datetime:
 
 
 async def send_code(db: AsyncSession, email: str, purpose: str) -> None:
-    """发送验证码，同邮箱同用途 60 秒内限发一次。"""
+    """发送验证码，同邮箱同用途 60 秒内限发一次。
+
+    邮件真正投递成功后才落库；发送失败会回滚并返回明确错误，不占用限流窗口。
+    """
+    registered = (await db.execute(select(User.id).where(User.email == email))).scalar_one_or_none()
+    if purpose == "register" and registered is not None:
+        raise AppException(ErrorCode.CONFLICT, "该邮箱已注册，请直接登录")
+    if purpose == "reset_password" and registered is None:
+        raise AppException(ErrorCode.NOT_FOUND, "该邮箱未注册")
+
     stmt = (
         select(EmailVerification)
         .where(EmailVerification.email == email, EmailVerification.purpose == purpose)
@@ -51,12 +65,24 @@ async def send_code(db: AsyncSession, email: str, purpose: str) -> None:
         expires_at=_now() + CODE_TTL,
     )
     db.add(record)
+    await db.flush()
+    try:
+        await send_verification_code(email, record.code, purpose)
+    except MailNotConfiguredError as exc:
+        await db.rollback()
+        logger.error("邮件服务未配置，无法发送验证码: %s", exc)
+        raise AppException(ErrorCode.SERVICE_UNAVAILABLE, "邮件服务未配置，暂时无法发送验证码，请联系管理员") from None
+    except MailSendError:
+        await db.rollback()
+        raise AppException(ErrorCode.SERVICE_UNAVAILABLE, "验证码邮件发送失败，请检查邮箱地址或稍后重试") from None
     await db.commit()
-    await send_verification_code(email, record.code, purpose)
 
 
 async def _consume_code(db: AsyncSession, email: str, purpose: str, code: str) -> None:
-    """校验并核销验证码（单次有效）。"""
+    """校验并核销验证码（单次有效，错误次数超限即作废）。
+
+    校验成功时仅标记已使用，由调用方在同一事务中提交，保证与业务写入原子性。
+    """
     stmt = (
         select(EmailVerification)
         .where(
@@ -68,12 +94,20 @@ async def _consume_code(db: AsyncSession, email: str, purpose: str, code: str) -
         .limit(1)
     )
     record = (await db.execute(stmt)).scalar_one_or_none()
-    if record is None or record.code != code:
-        raise AppException(ErrorCode.VALIDATION_ERROR, "验证码错误")
+    if record is None:
+        raise AppException(ErrorCode.VALIDATION_ERROR, "验证码错误或已失效，请重新获取")
     if record.expires_at < _now():
-        raise AppException(ErrorCode.VALIDATION_ERROR, "验证码已过期")
+        raise AppException(ErrorCode.VALIDATION_ERROR, "验证码已过期，请重新获取")
+    if not secrets.compare_digest(record.code, code):
+        record.failed_attempts += 1
+        exhausted = record.failed_attempts >= MAX_CODE_ATTEMPTS
+        if exhausted:
+            record.used = True
+        await db.commit()
+        if exhausted:
+            raise AppException(ErrorCode.VALIDATION_ERROR, "验证码错误次数过多，请重新获取")
+        raise AppException(ErrorCode.VALIDATION_ERROR, "验证码错误")
     record.used = True
-    await db.commit()
 
 
 async def register(db: AsyncSession, data: RegisterRequest) -> TokenResponse:
@@ -86,9 +120,13 @@ async def register(db: AsyncSession, data: RegisterRequest) -> TokenResponse:
 
     user = User(email=data.email, password_hash=hash_password(data.password), name=data.name)
     db.add(user)
-    await db.flush()
-    db.add(UserSetting(user_id=user.id))
-    await db.commit()
+    try:
+        await db.flush()
+        db.add(UserSetting(user_id=user.id))
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise AppException(ErrorCode.CONFLICT, "该邮箱已注册") from None
     await db.refresh(user)
     return TokenResponse(token=create_access_token(str(user.id)), user=UserOut.model_validate(user))
 

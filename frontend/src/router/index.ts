@@ -98,7 +98,7 @@ router.beforeEach((to) => {
   if (to.meta.requiresAuth && !token) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
-  if (to.name === 'login' && token) {
+  if ((to.name === 'login' || to.name === 'register') && token) {
     return { path: '/projects' }
   }
   return true

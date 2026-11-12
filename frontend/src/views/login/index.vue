@@ -2,14 +2,20 @@
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+
+function redirectTarget(): string {
+  const redirect = route.query.redirect
+  return typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/projects'
+}
 
 async function onSubmit() {
   if (!email.value || !password.value) {
@@ -18,13 +24,13 @@ async function onSubmit() {
   }
   loading.value = true
   try {
-    await userStore.doLogin(email.value, password.value)
+    await userStore.doLogin(email.value.trim(), password.value)
     if (userStore.user?.status === 'cancelling') {
       ElMessage.warning('账号处于注销冷静期，可前往设置撤销注销')
     } else {
       ElMessage.success('登录成功')
     }
-    router.push('/home')
+    router.push(redirectTarget())
   } finally {
     loading.value = false
   }

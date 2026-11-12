@@ -12,7 +12,7 @@ const userStore = useUserStore()
 const isAuthPage = computed(() => route.meta.public === true)
 
 onMounted(() => {
-  void userStore.fetchUser()
+  if (userStore.token) void userStore.fetchUser()
 })
 
 function logout() {

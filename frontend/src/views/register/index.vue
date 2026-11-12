@@ -17,15 +17,18 @@ const loading = ref(false)
 const sending = ref(false)
 const countdown = ref(0)
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 async function onSendCode() {
-  if (!email.value) {
-    ElMessage.warning('请输入邮箱')
+  const target = email.value.trim()
+  if (!EMAIL_RE.test(target)) {
+    ElMessage.warning('请输入有效的邮箱地址')
     return
   }
   sending.value = true
   try {
-    await sendCode(email.value, 'register')
-    ElMessage.success('验证码已发送')
+    await sendCode(target, 'register')
+    ElMessage.success(`验证码已发送至 ${target}，请查收邮件（含垃圾箱）`)
     countdown.value = 60
     const timer = window.setInterval(() => {
       countdown.value -= 1
@@ -37,8 +40,20 @@ async function onSendCode() {
 }
 
 async function onSubmit() {
-  if (!code.value) {
-    ElMessage.warning('请输入验证码')
+  if (!EMAIL_RE.test(email.value.trim())) {
+    ElMessage.warning('请输入有效的邮箱地址')
+    return
+  }
+  if (!/^\d{6}$/.test(code.value.trim())) {
+    ElMessage.warning('请输入 6 位数字验证码')
+    return
+  }
+  if (!name.value.trim()) {
+    ElMessage.warning('请输入姓名')
+    return
+  }
+  if (password.value.length < 8) {
+    ElMessage.warning('密码至少 8 位')
     return
   }
   if (password.value !== confirmPassword.value) {
@@ -48,14 +63,14 @@ async function onSubmit() {
   loading.value = true
   try {
     const res = await apiRegister({
-      email: email.value,
-      code: code.value,
+      email: email.value.trim(),
+      code: code.value.trim(),
       password: password.value,
-      name: name.value,
+      name: name.value.trim(),
     })
     userStore.setAuth(res.data.token, res.data.user)
     ElMessage.success('注册成功')
-    router.push('/home')
+    router.push('/projects')
   } finally {
     loading.value = false
   }

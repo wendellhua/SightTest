@@ -24,7 +24,7 @@ from app.api.reports import router as reports_router
 from app.api.settings import router as settings_router
 from app.api.usage import router as usage_router
 from app.api.users import router as users_router
-from app.core.bootstrap import ensure_admin_user
+from app.core.bootstrap import bootstrap
 from app.core.config import settings
 from app.core.exceptions import AppException, ErrorCode
 from app.core.logging import setup_logging
@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """应用生命周期：启动时确保内置管理员账号存在。"""
-    await ensure_admin_user()
+    """应用生命周期：启动时初始化内置管理员与平台设置。"""
+    await bootstrap()
     yield
 
 

@@ -18,6 +18,7 @@ class ErrorCode(IntEnum):
     CONFLICT = 40901
     TOO_MANY_REQUESTS = 42901
     INTERNAL_ERROR = 50001
+    SERVICE_UNAVAILABLE = 50301
 
 
 # 错误码对应的 HTTP 状态码
@@ -31,6 +32,7 @@ _HTTP_STATUS: dict[ErrorCode, int] = {
     ErrorCode.CONFLICT: 409,
     ErrorCode.TOO_MANY_REQUESTS: 429,
     ErrorCode.INTERNAL_ERROR: 500,
+    ErrorCode.SERVICE_UNAVAILABLE: 503,
 }
 
 

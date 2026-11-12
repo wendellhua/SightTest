@@ -31,8 +31,16 @@ async def get_current_user(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """返回当前登录用户（含 is_admin，用于权限校验）。"""
-    return await account.get_user(db, user_id)
+    """返回当前登录用户（含 is_admin，用于权限校验）；已冻结账号的旧 token 一并拒绝。"""
+    user = await account.get_user(db, user_id)
+    if user.status == "frozen":
+        raise AppException(ErrorCode.FORBIDDEN, "账号已被冻结，请联系管理员")
+    return user
+
+
+async def get_active_user_id(user: User = Depends(get_current_user)) -> int:
+    """返回已通过账号状态校验的当前用户 id。"""
+    return user.id
 
 
 async def get_current_admin(user: User = Depends(get_current_user)) -> User:

@@ -42,10 +42,12 @@ CREATE TABLE IF NOT EXISTS email_verifications (
     purpose    VARCHAR(20)  NOT NULL,
     expires_at TIMESTAMPTZ  NOT NULL,
     used       BOOLEAN      NOT NULL DEFAULT FALSE,
+    failed_attempts INT     NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE  email_verifications IS '注册 / 找回密码的邮箱验证码';
 COMMENT ON COLUMN email_verifications.purpose IS '用途：register 注册 / reset_password 找回密码';
+COMMENT ON COLUMN email_verifications.failed_attempts IS '验证码错误尝试次数，超限后作废';
 CREATE INDEX IF NOT EXISTS idx_email_verifications_lookup
     ON email_verifications (email, purpose, used);
 
@@ -349,6 +351,7 @@ COMMENT ON COLUMN platform_settings.stress_duration_seconds IS '压测默认持�
 COMMENT ON COLUMN platform_settings.account_limit IS '每项目测试账号上限';
 COMMENT ON COLUMN platform_settings.default_account_stress_limit IS '新用户单账号压测并发上限';
 COMMENT ON COLUMN platform_settings.disclaimer IS '免责声明内容';
+INSERT INTO platform_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
 -- 15. user_settings 用户设置

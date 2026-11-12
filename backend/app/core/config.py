@@ -41,9 +41,13 @@ class Settings(BaseSettings):
     minio_secure: bool = False
 
     # SMTP
+    # 587 端口一般使用 STARTTLS（SMTP_START_TLS=true）；
+    # 465 端口为隐式 TLS（SMTP_USE_TLS=true，端口为 465 时自动启用）
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_start_tls: bool = True
+    smtp_use_tls: bool = False
+    smtp_timeout: int = 15
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
