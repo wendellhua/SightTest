@@ -1,0 +1,46 @@
+# ===== 依赖与构建产物 =====
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / 前端
+node_modules/
+dist/
+.vite/
+*.local
+
+# ===== 环境变量与密钥（仅保留模板）=====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== 设计 / 规则文档（内部资料，不上传）=====
+docs/
+
+# ===== IDE 与系统文件 =====
+.codebuddy/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ===== 日志与临时文件 =====
+*.log
+logs/
+tmp/

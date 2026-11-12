@@ -1,0 +1,30 @@
+:root {
+  --st-primary: #4f46e5;
+  --st-bg: #f5f6fa;
+  --st-text: #1f2937;
+  --st-text-2: #6b7280;
+  --st-border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
+  color: var(--st-text);
+  background: var(--st-bg);
+}
