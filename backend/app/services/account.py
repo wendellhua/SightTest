@@ -32,8 +32,12 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-async def send_code(db: AsyncSession, email: str, purpose: str) -> None:
-    """发送验证码，同邮箱同用途 60 秒内限发一次。"""
+async def send_code(db: AsyncSession, email: str, purpose: str) -> str:
+    """发送验证码，同邮箱同用途 60 秒内限发一次。
+
+    返回验证码本身；生产环境（已配置 SMTP）不应将其透出给客户端，
+    由路由层根据配置决定是否透传。
+    """
     stmt = (
         select(EmailVerification)
         .where(EmailVerification.email == email, EmailVerification.purpose == purpose)
@@ -53,6 +57,7 @@ async def send_code(db: AsyncSession, email: str, purpose: str) -> None:
     db.add(record)
     await db.commit()
     await send_verification_code(email, record.code, purpose)
+    return record.code
 
 
 async def _consume_code(db: AsyncSession, email: str, purpose: str, code: str) -> None:
