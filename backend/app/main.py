@@ -2,7 +2,8 @@
 
 import logging
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -23,6 +24,7 @@ from app.api.reports import router as reports_router
 from app.api.settings import router as settings_router
 from app.api.usage import router as usage_router
 from app.api.users import router as users_router
+from app.core.bootstrap import ensure_admin_user
 from app.core.config import settings
 from app.core.exceptions import AppException, ErrorCode
 from app.core.logging import setup_logging
@@ -30,11 +32,20 @@ from app.core.logging import setup_logging
 setup_logging(settings.debug)
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """应用生命周期：启动时确保内置管理员账号存在。"""
+    await ensure_admin_user()
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     docs_url="/docs" if settings.debug else None,
     redoc_url=None,
     openapi_url="/openapi.json" if settings.debug else None,
+    lifespan=lifespan,
 )
 
 app.add_middleware(

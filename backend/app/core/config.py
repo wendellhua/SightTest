@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = ""
 
+    # 内置管理员（应用首次启动时自动创建，建议首次登录后修改密码）
+    admin_email: str = "admin@st.com"
+    admin_password: str = "admin123"
+
 
 @lru_cache
 def get_settings() -> Settings:
