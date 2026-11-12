@@ -1,5 +1,7 @@
 """报告路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +21,7 @@ async def create_report(
     data: ReportCreate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     report_id = await report_service.create_report(db, user.id, project_id, user.is_admin, data)
     return ok({"report_id": report_id})
 
@@ -31,7 +33,7 @@ async def list_reports(
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await report_service.list_reports(db, user.id, project_id, user.is_admin, page, page_size)
     return ok(
         {
@@ -49,7 +51,7 @@ async def get_report(
     report_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     report = await report_service.get_report(db, user.id, project_id, report_id, user.is_admin)
     return ok(ReportOut.model_validate(report))
 

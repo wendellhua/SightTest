@@ -1,6 +1,7 @@
 """用量与成本统计服务（M11）。"""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,14 +19,14 @@ def _task_name(task_type: str | None, task_id: int | None) -> str:
     return text
 
 
-async def get_usage(db: AsyncSession, user_id: int, project_id: int | None, days: int) -> dict:
+async def get_usage(db: AsyncSession, user_id: int, project_id: int | None, days: int) -> dict[str, Any]:
     """汇总当前用户自己项目的用量与成本（按项目/模型/任务三维度）。"""
     project_filters = [Project.creator_id == user_id]
     if project_id is not None:
         project_filters.append(Project.id == project_id)
 
     projects = (await db.execute(select(Project.id, Project.name).where(*project_filters))).all()
-    project_id_to_name = {pid: pname for pid, pname in projects}
+    project_id_to_name = dict(projects)
     project_ids = list(project_id_to_name.keys())
 
     overview = {
@@ -38,7 +39,7 @@ async def get_usage(db: AsyncSession, user_id: int, project_id: int | None, days
     if not project_ids:
         return {"overview": overview, "by_project": [], "by_model": [], "by_task": []}
 
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
     rows = (
         await db.execute(
             select(
@@ -54,11 +55,13 @@ async def get_usage(db: AsyncSession, user_id: int, project_id: int | None, days
         )
     ).all()
 
-    by_project: dict[int, dict] = {}
-    by_model: dict[str, dict] = {}
-    by_task: dict[tuple, dict] = {}
+    by_project: dict[int, dict[str, Any]] = {}
+    by_model: dict[str, dict[str, Any]] = {}
+    by_task: dict[tuple[Any, ...], dict[str, Any]] = {}
 
     for pid, task_type, task_id, in_tok, out_tok, model_name in rows:
+        if pid is None:
+            continue
         cost = calc_cost(model_name, in_tok, out_tok)
 
         overview["input_tokens"] += in_tok

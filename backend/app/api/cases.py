@@ -1,5 +1,7 @@
 """用例路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +24,7 @@ async def list_cases(
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await case_service.list_cases(
         db, user.id, project_id, user.is_admin, case_type, version_id, page, page_size
     )
@@ -42,7 +44,7 @@ async def create_case(
     data: CaseCreate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     case = await case_service.create_case(db, user.id, project_id, user.is_admin, data)
     return ok(CaseOut.model_validate(case))
 
@@ -53,7 +55,7 @@ async def get_case(
     case_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     case = await case_service.get_case(db, user.id, project_id, case_id, user.is_admin)
     return ok(CaseOut.model_validate(case))
 
@@ -65,7 +67,7 @@ async def update_case(
     data: CaseUpdate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     case = await case_service.update_case(db, user.id, project_id, case_id, user.is_admin, data)
     return ok(CaseOut.model_validate(case))
 
@@ -76,7 +78,7 @@ async def delete_case(
     case_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await case_service.delete_case(db, user.id, project_id, case_id, user.is_admin)
     return ok()
 
@@ -87,6 +89,6 @@ async def debug_case(
     case_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     execution_id = await case_service.debug_case(db, user.id, project_id, case_id, user.is_admin)
     return ok({"execution_id": execution_id})

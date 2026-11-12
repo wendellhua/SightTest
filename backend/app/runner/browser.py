@@ -7,7 +7,7 @@
 import logging
 from typing import Any
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Browser, Page, Playwright, sync_playwright
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,8 @@ class BrowserSession:
 
     def __init__(self, headless: bool = True) -> None:
         self.headless = headless
-        self._pw = None
-        self._browser = None
+        self._pw: Playwright | None = None
+        self._browser: Browser | None = None
         self._page: Page | None = None
 
     def __enter__(self) -> "BrowserSession":

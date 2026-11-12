@@ -1,5 +1,7 @@
 """用量与成本统计路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,5 +20,5 @@ async def get_usage(
     days: int = Query(30, ge=1, le=365),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     return ok(await usage_service.get_usage(db, user.id, project_id, days))

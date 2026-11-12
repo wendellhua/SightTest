@@ -1,5 +1,7 @@
 """报告服务：生成、列表、详情与导出。"""
 
+from typing import Any
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -12,7 +14,7 @@ from app.tasks.report import generate_report_summary
 from app.utils.scoring import calculate_score
 
 
-def _extract_case_results(case_executions: list[CaseExecution]) -> list[dict]:
+def _extract_case_results(case_executions: list[CaseExecution]) -> list[dict[str, Any]]:
     results = []
     for ce in case_executions:
         snapshot = ce.case_snapshot or {}
@@ -26,8 +28,8 @@ def _extract_case_results(case_executions: list[CaseExecution]) -> list[dict]:
     return results
 
 
-def _build_top_issues(case_executions: list[CaseExecution], issues: list[Issue]) -> list[dict]:
-    top: list[dict] = []
+def _build_top_issues(case_executions: list[CaseExecution], issues: list[Issue]) -> list[dict[str, Any]]:
+    top: list[dict[str, Any]] = []
     for ce in case_executions:
         if ce.result == "fail":
             snapshot = ce.case_snapshot or {}
@@ -54,7 +56,7 @@ async def create_report(
 
     if data.scope == "execution":
         if data.execution_id is None:
-            raise AppException(ErrorCode.PARAM, "按执行生成报告需指定 execution_id")
+            raise AppException(ErrorCode.VALIDATION_ERROR, "按执行生成报告需指定 execution_id")
         execution = (
             await db.execute(
                 select(Execution).where(Execution.id == data.execution_id, Execution.project_id == project_id)

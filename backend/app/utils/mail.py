@@ -5,6 +5,7 @@
 """
 
 import logging
+from email.message import EmailMessage
 
 import aiosmtplib
 
@@ -20,7 +21,7 @@ async def send_mail(to: str, subject: str, body: str) -> None:
             logger.info("开发模式（SMTP 未配置）不发送邮件。收件人=%s 主题=%s 内容=%s", to, subject, body)
         return
 
-    message = aiosmtplib.email.message.EmailMessage()
+    message = EmailMessage()
     message["From"] = settings.smtp_from or settings.smtp_user
     message["To"] = to
     message["Subject"] = subject

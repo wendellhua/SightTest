@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import Any
+from typing import Any, cast
 
 from langchain_core.prompts import PromptTemplate
 
@@ -26,11 +26,11 @@ def parse_json_array(text: str) -> list[dict[str, Any]]:
     """从 LLM 输出中解析 JSON 数组，剥离可能的代码块标记。"""
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.MULTILINE).strip()
     try:
-        return json.loads(cleaned)
+        return cast(list[dict[str, Any]], json.loads(cleaned))
     except json.JSONDecodeError:
         match = re.search(r"\[.*\]", text, flags=re.DOTALL)
         if match:
-            return json.loads(match.group(0))
+            return cast(list[dict[str, Any]], json.loads(match.group(0)))
         raise
 
 
@@ -46,4 +46,4 @@ class AnalyzeAgent(BaseAgent):
     def run(self, snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         text = json.dumps(snapshot, ensure_ascii=False, default=str)
         result = self.chain.invoke({"snapshot": text}, config={"callbacks": [self.usage]})
-        return parse_json_array(result.content)
+        return parse_json_array(self._text_content(result))

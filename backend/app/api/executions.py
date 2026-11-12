@@ -1,5 +1,7 @@
 """测试执行、问题与误报清单路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +29,7 @@ async def start_execution(
     data: ExecutionCreate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     execution_id = await execution_service.start_execution(db, user.id, project_id, user.is_admin, data)
     return ok({"execution_id": execution_id})
 
@@ -40,7 +42,7 @@ async def list_executions(
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await execution_service.list_executions(
         db, user.id, project_id, user.is_admin, include_debug, page, page_size
     )
@@ -60,7 +62,7 @@ async def get_execution(
     execution_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     execution = await execution_service.get_execution(db, user.id, project_id, execution_id, user.is_admin)
     return ok(ExecutionOut.model_validate(execution))
 
@@ -71,7 +73,7 @@ async def terminate_execution(
     execution_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await execution_service.terminate_execution(db, user.id, project_id, execution_id, user.is_admin)
     return ok()
 
@@ -83,7 +85,7 @@ async def list_case_executions(
     result: str | None = Query(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     items = await execution_service.list_case_executions(
         db, user.id, project_id, execution_id, user.is_admin, result
     )
@@ -98,7 +100,7 @@ async def list_issues(
     page_size: int = Query(20, ge=1, le=100),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await execution_service.list_issues(
         db, user.id, project_id, user.is_admin, severity, page, page_size
     )
@@ -119,7 +121,7 @@ async def update_issue(
     data: IssueUpdate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     issue = await execution_service.update_issue(db, user.id, project_id, issue_id, user.is_admin, data)
     return ok(IssueOut.model_validate(issue))
 
@@ -129,7 +131,7 @@ async def list_misreport_patterns(
     project_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     patterns = await execution_service.list_misreport_patterns(db, user.id, project_id, user.is_admin)
     return ok([MisreportPatternOut.model_validate(p) for p in patterns])
 
@@ -141,7 +143,7 @@ async def update_misreport_pattern(
     data: MisreportPatternUpdate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     pattern = await execution_service.update_misreport_pattern(
         db, user.id, project_id, pattern_id, user.is_admin, data
     )
@@ -155,6 +157,6 @@ async def get_perf_trends(
     days: int = Query(30, ge=1, le=365),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     trends = await execution_service.get_perf_trends(db, user.id, project_id, user.is_admin, case_id, days)
     return ok(trends)

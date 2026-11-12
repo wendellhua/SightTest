@@ -5,7 +5,8 @@ MVP 执行链路：打开首页采集快照 → 逐用例 UI 判定（LLM）→ 
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from app.agents.discover import DiscoverAgent
 from app.agents.judge import JudgeAgent
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="execution.run", max_retries=0, time_limit=7200)
-def run_execution(self, execution_id: int, project_id: int) -> dict:
+def run_execution(self: Any, execution_id: int, project_id: int) -> dict[str, Any]:
     """执行测试任务。"""
     session = sync_session_factory()
     try:
@@ -33,7 +34,7 @@ def run_execution(self, execution_id: int, project_id: int) -> dict:
             raise RuntimeError("项目未绑定模型")
 
         execution.status = "running"
-        execution.started_at = datetime.now(timezone.utc)
+        execution.started_at = datetime.now(UTC)
         session.commit()
 
         # 1. 打开首页采集快照
@@ -49,7 +50,7 @@ def run_execution(self, execution_id: int, project_id: int) -> dict:
         case_ids = list(execution.order_items or [])
         total = max(len(case_ids), 1)
         results: dict[str, int] = {"pass": 0, "fail": 0, "blocked": 0}
-        run_summary: list[dict] = []
+        run_summary: list[dict[str, Any]] = []
 
         # 2. 逐用例判定
         for index, case_id in enumerate(case_ids):
@@ -86,8 +87,8 @@ def run_execution(self, execution_id: int, project_id: int) -> dict:
                         "case_type": case.case_type,
                         "priority": case.priority,
                     },
-                    started_at=datetime.now(timezone.utc),
-                    finished_at=datetime.now(timezone.utc),
+                    started_at=datetime.now(UTC),
+                    finished_at=datetime.now(UTC),
                 )
             )
             run_summary.append({"name": case.name, "result": result, "reason": judge_result.get("reason", "")})
@@ -128,7 +129,7 @@ def run_execution(self, execution_id: int, project_id: int) -> dict:
         execution.status = "completed"
         execution.progress = 100
         execution.summary = results
-        execution.finished_at = datetime.now(timezone.utc)
+        execution.finished_at = datetime.now(UTC)
         session.commit()
 
         return {"execution_id": execution_id, "summary": results, "issue_count": len(issues)}
@@ -139,7 +140,7 @@ def run_execution(self, execution_id: int, project_id: int) -> dict:
         execution = session.get(Execution, execution_id)
         if execution is not None:
             execution.status = "failed"
-            execution.finished_at = datetime.now(timezone.utc)
+            execution.finished_at = datetime.now(UTC)
         session.commit()
         raise
     finally:

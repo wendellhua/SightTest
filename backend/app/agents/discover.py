@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import Any
+from typing import Any, cast
 
 from langchain_core.prompts import PromptTemplate
 
@@ -31,11 +31,11 @@ _DISCOVER_PROMPT = PromptTemplate.from_template(
 def parse_json_array(text: str) -> list[dict[str, Any]]:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.MULTILINE).strip()
     try:
-        return json.loads(cleaned)
+        return cast(list[dict[str, Any]], json.loads(cleaned))
     except json.JSONDecodeError:
         match = re.search(r"\[.*\]", text, flags=re.DOTALL)
         if match:
-            return json.loads(match.group(0))
+            return cast(list[dict[str, Any]], json.loads(match.group(0)))
         return []
 
 
@@ -56,4 +56,4 @@ class DiscoverAgent(BaseAgent):
             },
             config={"callbacks": [self.usage]},
         )
-        return parse_json_array(result.content)
+        return parse_json_array(self._text_content(result))

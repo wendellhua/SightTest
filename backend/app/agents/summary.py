@@ -41,4 +41,4 @@ class SummaryAgent(BaseAgent):
             },
             config={"callbacks": [self.usage]},
         )
-        return result.content.strip()
+        return self._text_content(result).strip()

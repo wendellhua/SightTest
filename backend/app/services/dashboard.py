@@ -1,5 +1,7 @@
 """平台首页与项目仪表盘服务。"""
 
+from typing import Any
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +11,7 @@ from app.services.project import get_owned_project
 CASE_TYPES = ["func", "api", "perf", "mech"]
 
 
-async def get_platform_home(db: AsyncSession, user_id: int) -> dict:
+async def get_platform_home(db: AsyncSession, user_id: int) -> dict[str, Any]:
     """平台首页：项目数 + 能力介绍（能力介绍为静态，由前端渲染）。"""
     project_count = (
         await db.execute(select(func.count()).select_from(Project).where(Project.creator_id == user_id))
@@ -17,7 +19,7 @@ async def get_platform_home(db: AsyncSession, user_id: int) -> dict:
     return {"project_count": project_count}
 
 
-async def get_project_dashboard(db: AsyncSession, user_id: int, project_id: int, is_admin: bool) -> dict:
+async def get_project_dashboard(db: AsyncSession, user_id: int, project_id: int, is_admin: bool) -> dict[str, Any]:
     """项目仪表盘：测试状态总览。"""
     project = await get_owned_project(db, user_id, project_id, is_admin)
 

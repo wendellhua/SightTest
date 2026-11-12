@@ -72,7 +72,7 @@ async def update_model(db: AsyncSession, user_id: int, model_id: int, data: Mode
 
 
 async def delete_model(db: AsyncSession, user_id: int, model_id: int) -> None:
-    model = await _get_owned_model(db, user_id, model_id)
+    await _get_owned_model(db, user_id, model_id)
     bound = (
         await db.execute(select(Project.id).where(Project.model_config_id == model_id).limit(1))
     ).scalar_one_or_none()

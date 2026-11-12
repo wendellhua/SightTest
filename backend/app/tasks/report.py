@@ -1,6 +1,7 @@
 """报告生成任务：摘要 Agent 撰写结论摘要。"""
 
 import logging
+from typing import Any
 
 from app.agents.metrics import record_usage
 from app.agents.summary import SummaryAgent
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="report.generate", max_retries=0, time_limit=600)
-def generate_report_summary(self, report_id: int, project_id: int) -> dict:
+def generate_report_summary(self: Any, report_id: int, project_id: int) -> dict[str, Any]:
     """异步撰写报告结论摘要。"""
     session = sync_session_factory()
     try:

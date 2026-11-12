@@ -6,7 +6,7 @@
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
@@ -17,7 +17,7 @@ from app.core.config import settings
 
 def create_access_token(subject: str, extra: dict[str, Any] | None = None) -> str:
     """签发 JWT，subject 为用户 id。"""
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_expire_minutes)
     payload: dict[str, Any] = {"sub": subject, "exp": expire}
     if extra:
         payload.update(extra)

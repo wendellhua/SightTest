@@ -2,8 +2,9 @@
 
 import logging
 import uuid
+from collections.abc import Awaitable, Callable
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -46,7 +47,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def attach_request_id(request: Request, call_next):
+async def attach_request_id(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """为每个响应附加可追溯 ID（可选能力）。"""
     request_id = request.headers.get("X-Request-Id") or uuid.uuid4().hex
     response = await call_next(request)

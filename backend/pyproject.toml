@@ -13,7 +13,7 @@ dependencies = [
     "pydantic>=2.8,<3.0",
     "pydantic-settings>=2.5,<3.0",
     "email-validator>=2.2,<3.0",
-    "redis>=5.2,<6.0",
+    "redis>=6.1,<7.0",
     "celery[redis]>=5.4,<6.0",
     "pyjwt[crypto]>=2.9,<3.0",
     "cryptography>=43,<46",
@@ -49,10 +49,28 @@ target-version = "py312"
 select = ["E", "F", "I", "W", "UP", "B", "C4"]
 ignore = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Body",
+    "fastapi.Path",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.File",
+    "fastapi.Form",
+]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
+# celery 的 @task 装饰器缺少完整类型标注（第三方库问题）
+disable_error_code = ["untyped-decorator"]
+
+[[tool.mypy.overrides]]
+module = ["celery", "celery.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

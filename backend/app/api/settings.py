@@ -1,5 +1,7 @@
 """用户设置路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 async def get_settings(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     setting = await setting_service.get_setting(db, user.id)
     return ok(SettingOut.model_validate(setting))
 
@@ -27,6 +29,6 @@ async def update_settings(
     data: SettingUpdate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     setting = await setting_service.update_setting(db, user.id, data)
     return ok(SettingOut.model_validate(setting))

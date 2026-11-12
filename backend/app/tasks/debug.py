@@ -5,7 +5,8 @@
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from app.core.celery_app import celery_app
 from app.core.database import sync_session_factory
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="debug.run", max_retries=0, time_limit=600)
-def run_debug(self, execution_id: int, case_id: int) -> dict:
+def run_debug(self: Any, execution_id: int, case_id: int) -> dict[str, Any]:
     """执行单条用例调试。"""
     session = sync_session_factory()
     try:
@@ -27,7 +28,7 @@ def run_debug(self, execution_id: int, case_id: int) -> dict:
         # TODO(阶段 6): 接入真实 UI 执行引擎
         execution.status = "completed"
         execution.progress = 100
-        execution.finished_at = datetime.now(timezone.utc)
+        execution.finished_at = datetime.now(UTC)
 
         session.add(
             CaseExecution(

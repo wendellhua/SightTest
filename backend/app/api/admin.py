@@ -1,5 +1,7 @@
 """admin 后台路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +28,7 @@ async def list_users(
     page_size: int = Query(20, ge=1, le=100),
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await admin_service.list_users(db, page, page_size, status)
     return ok(
         {
@@ -44,7 +46,7 @@ async def update_user(
     data: AdminUserUpdate,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     user = await admin_service.update_user(db, user_id, data)
     return ok(AdminUserOut.model_validate(user))
 
@@ -54,7 +56,7 @@ async def delete_user(
     user_id: int,
     admin: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await admin_service.delete_user(db, user_id, admin.id)
     return ok()
 
@@ -65,7 +67,7 @@ async def list_projects(
     page_size: int = Query(20, ge=1, le=100),
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     total, items = await admin_service.list_projects(db, page, page_size)
     return ok(
         {
@@ -82,7 +84,7 @@ async def delete_project(
     project_id: int,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await admin_service.delete_project(db, project_id)
     return ok()
 
@@ -91,7 +93,7 @@ async def delete_project(
 async def get_settings(
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     setting = await admin_service.get_platform_setting(db)
     return ok(PlatformSettingOut.model_validate(setting))
 
@@ -101,6 +103,6 @@ async def update_settings(
     data: PlatformSettingUpdate,
     _: User = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     setting = await admin_service.update_platform_setting(db, data)
     return ok(PlatformSettingOut.model_validate(setting))

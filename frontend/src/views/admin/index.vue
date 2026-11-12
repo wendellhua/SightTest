@@ -12,7 +12,7 @@ import {
   type PlatformSetting,
 } from '@/api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const activeTab = ref('users')
 

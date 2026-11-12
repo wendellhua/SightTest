@@ -1,6 +1,7 @@
 """测试执行服务：发起、进度、终止、结果、问题与误报清单。"""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from celery.result import AsyncResult
 from sqlalchemy import func, select
@@ -138,7 +139,7 @@ async def terminate_execution(
 
     await run_in_threadpool(_revoke, execution_id)
     execution.status = "terminated"
-    execution.finished_at = datetime.now(timezone.utc)
+    execution.finished_at = datetime.now(UTC)
     await db.commit()
 
 
@@ -225,9 +226,9 @@ async def update_misreport_pattern(
 
 async def get_perf_trends(
     db: AsyncSession, user_id: int, project_id: int, is_admin: bool, case_id: int, days: int
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     await get_owned_project(db, user_id, project_id, is_admin)
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
     stmt = (
         select(CaseExecution)
         .where(CaseExecution.case_id == case_id, CaseExecution.finished_at >= since)

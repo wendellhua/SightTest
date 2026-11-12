@@ -5,7 +5,8 @@
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from app.agents.analyze import AnalyzeAgent
 from app.agents.case_gen import CaseGenAgent
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, name="build.run", max_retries=0, time_limit=3600)
-def run_build(self, build_id: int, project_id: int) -> dict:
+def run_build(self: Any, build_id: int, project_id: int) -> dict[str, Any]:
     """执行方案建设。"""
     session = sync_session_factory()
     try:
@@ -80,7 +81,7 @@ def run_build(self, build_id: int, project_id: int) -> dict:
         plan_version.explore_data = {"modules": modules, "snapshot": snapshot}
         plan_version.explore_stats = {"pages": 1, "modules": len(modules), "cases": len(cases)}
         plan_version.status = "completed"
-        plan_version.completed_at = datetime.now(timezone.utc)
+        plan_version.completed_at = datetime.now(UTC)
         project.plan_status = "ready"
         session.commit()
 

@@ -36,7 +36,7 @@ async def check_model(base_url: str, api_key: str, model: str) -> ModelCheckResu
     return ModelCheckResult(True, supports_vision, message)
 
 
-async def _ping_chat(client: httpx.AsyncClient, base: str, headers: dict, model: str) -> bool:
+async def _ping_chat(client: httpx.AsyncClient, base: str, headers: dict[str, str], model: str) -> bool:
     """发送最小文本对话请求，检测连通性。"""
     payload = {
         "model": model,
@@ -50,7 +50,7 @@ async def _ping_chat(client: httpx.AsyncClient, base: str, headers: dict, model:
         return False
 
 
-async def _probe_vision(client: httpx.AsyncClient, base: str, headers: dict, model: str) -> bool:
+async def _probe_vision(client: httpx.AsyncClient, base: str, headers: dict[str, str], model: str) -> bool:
     """发送带图片的对话请求，探测是否支持图片识别。"""
     payload = {
         "model": model,

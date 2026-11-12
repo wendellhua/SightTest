@@ -49,7 +49,7 @@ async function onSubmit() {
       <div class="login-links">
         <router-link to="/register">注册账号</router-link>
         <span class="sep">·</span>
-        <a @click="$message.info('找回密码待实现')">忘记密码</a>
+        <a @click="ElMessage.info('找回密码待实现')">忘记密码</a>
       </div>
     </el-card>
   </div>

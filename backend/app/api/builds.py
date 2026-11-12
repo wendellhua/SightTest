@@ -1,5 +1,7 @@
 """方案建设路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +21,7 @@ async def start_build(
     data: BuildStartRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     build_id = await build_service.start_build(db, user.id, project_id, user.is_admin, data)
     return ok({"build_id": build_id})
 
@@ -30,7 +32,7 @@ async def get_build(
     build_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     build = await build_service.get_build(db, user.id, project_id, build_id, user.is_admin)
     return ok(build)
 
@@ -41,7 +43,7 @@ async def terminate_build(
     build_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await build_service.terminate_build(db, user.id, project_id, build_id, user.is_admin)
     return ok()
 
@@ -51,7 +53,7 @@ async def list_versions(
     project_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     versions = await build_service.list_versions(db, user.id, project_id, user.is_admin)
     return ok([VersionOut.model_validate(v) for v in versions])
 
@@ -62,6 +64,6 @@ async def get_version(
     version_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     version = await build_service.get_version(db, user.id, project_id, version_id, user.is_admin)
     return ok(VersionDetailOut.model_validate(version))

@@ -4,7 +4,7 @@
 """
 
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,6 @@ from app.core.exceptions import AppException, ErrorCode
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import EmailVerification, User, UserSetting
 from app.schemas.auth import (
-    LoginRequest,
     RegisterRequest,
     ResetPasswordRequest,
     TokenResponse,
@@ -30,7 +29,7 @@ def _generate_code() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 async def send_code(db: AsyncSession, email: str, purpose: str) -> None:

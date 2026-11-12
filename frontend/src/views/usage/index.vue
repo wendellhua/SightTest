@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { listProjects, type Project } from '@/api/project'
-import { getUsage, type UsageGroup, type UsageResult } from '@/api/usage'
+import { getUsage, type UsageResult } from '@/api/usage'
 import { onMounted, ref } from 'vue'
 
 const usage = ref<UsageResult>({

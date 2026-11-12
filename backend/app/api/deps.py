@@ -23,7 +23,7 @@ async def get_current_user_id(
     try:
         payload = decode_access_token(credentials.credentials)
     except pyjwt.PyJWTError:
-        raise AppException(ErrorCode.INVALID_TOKEN, "登录凭证无效或已过期")
+        raise AppException(ErrorCode.INVALID_TOKEN, "登录凭证无效或已过期") from None
     return int(payload["sub"])
 
 

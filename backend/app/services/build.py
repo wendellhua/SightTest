@@ -1,6 +1,6 @@
 """方案建设服务：启动、进度、终止、版本管理。"""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from celery.result import AsyncResult
 from sqlalchemy import delete, func, select, update
@@ -71,7 +71,7 @@ async def start_build(
         project_id=project_id,
         version_no=version_no,
         status="building",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db.add(plan_version)
     await db.flush()

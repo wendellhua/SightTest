@@ -1,5 +1,7 @@
 """模型配置路由。"""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/models", tags=["models"])
 async def list_models(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     models = await model_service.list_models(db, user.id)
     return ok([ModelOut.model_validate(m) for m in models])
 
@@ -27,7 +29,7 @@ async def create_model(
     data: ModelCreate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     model = await model_service.create_model(db, user.id, data)
     return ok(ModelOut.model_validate(model))
 
@@ -38,7 +40,7 @@ async def update_model(
     data: ModelUpdate,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     model = await model_service.update_model(db, user.id, model_id, data)
     return ok(ModelOut.model_validate(model))
 
@@ -48,7 +50,7 @@ async def delete_model(
     model_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     await model_service.delete_model(db, user.id, model_id)
     return ok()
 
@@ -58,6 +60,6 @@ async def test_model(
     model_id: int,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     result = await model_service.test_model(db, user.id, model_id)
     return ok({"ok": result.ok, "supports_vision": result.supports_vision, "message": result.message})

@@ -31,6 +31,12 @@ class BaseAgent(ABC):
         self.llm: BaseChatModel = build_chat_model(model_config)
         self.usage = TokenUsageCallback(self.name)
 
+    @staticmethod
+    def _text_content(message: Any) -> str:
+        """从 LangChain 消息中提取文本内容（兼容 content 为 list 的边界情况）。"""
+        content = message.content
+        return content if isinstance(content, str) else str(content)
+
     @abstractmethod
     def run(self, *args: Any, **kwargs: Any) -> Any:
         """执行 Agent 逻辑，返回业务结果。"""
